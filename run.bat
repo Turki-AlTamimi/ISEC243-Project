@@ -1,10 +1,34 @@
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/benign/air.A3-1000000.apk out\benign
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/benign/air.AccelBrain0Beat-1000004.apk out\benign
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/benign/air.androidtest-1004005.apk out\benign
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/benign/air.anomalist5-1000000.apk out\benign
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/benign/air.BusinessLawyersappforandroid-1001001.apk out\benign
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/malware/adware/ea02d2b195f8940cfa418e0eab2a621a.apk out\malware\adware
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/malware/adware/eae4505cac4e15a5108c2d1ca028dbdc.apk out\malware\adware
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/malware/adware/ebc4aa7e93e1d82dba2accced7c68e40.apk out\malware\adware
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/malware/adware/eda506a6c01c3c7e149ebaebcf929c40.apk out\malware\adware
-java -Xms512m -Xmx1024m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar ./samples/malware/adware/fa8d4ee44044b0fad215cbd37b8a9646.apk out\malware\adware
+@echo off
+setlocal
+
+:: 1) Class-path: tool + every jar in lib\
+set "CP=.;DroidASAT.jar;lib/*"
+
+:: 2) Main entry
+set "MAIN_CLASS=DroidASAT.main"
+
+:: 3) Paths to the Java RT jar and Android jar directory
+set "RT_JAR=lib\rt.jar"
+set "ANDROID_JAR_DIR=lib\android-jar"
+
+:: 4) Ensure output dirs exist
+if not exist out\benign  mkdir out\benign
+if not exist out\malware mkdir out\malware
+
+echo === Processing BENIGN APKs ===
+for %%F in (samples\benign\*.apk) do (
+    echo Processing: %%~nxF
+    java -Xmx1G -cp "%CP%" %MAIN_CLASS% ^
+         "%RT_JAR%" "%ANDROID_JAR_DIR%" "%%~fF" "out\benign"
+)
+
+echo === Processing MALWARE APKs ===
+for /R samples\malware %%F in (*.apk) do (
+    echo Processing: %%~nxF
+    java -Xmx1G -cp "%CP%" %MAIN_CLASS% ^
+         "%RT_JAR%" "%ANDROID_JAR_DIR%" "%%~fF" "out\malware"
+)
+
+echo === All done! ===
+pause
+endlocal
