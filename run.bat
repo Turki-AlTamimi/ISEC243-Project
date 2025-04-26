@@ -1,34 +1,35 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
-:: 1) Class-path: tool + every jar in lib\
-set "CP=.;DroidASAT.jar;lib/*"
+if exist list_of_csv_files.txt del list_of_csv_files.txt
 
-:: 2) Main entry
-set "MAIN_CLASS=DroidASAT.main"
+set APK_DIR_BENIGN=samples\benign
+set OUT_DIR_BENIGN=out\benign
 
-:: 3) Paths to the Java RT jar and Android jar directory
-set "RT_JAR=lib\rt.jar"
-set "ANDROID_JAR_DIR=lib\android-jar"
-
-:: 4) Ensure output dirs exist
-if not exist out\benign  mkdir out\benign
-if not exist out\malware mkdir out\malware
-
-echo === Processing BENIGN APKs ===
-for %%F in (samples\benign\*.apk) do (
-    echo Processing: %%~nxF
-    java -Xmx1G -cp "%CP%" %MAIN_CLASS% ^
-         "%RT_JAR%" "%ANDROID_JAR_DIR%" "%%~fF" "out\benign"
+if not exist "%OUT_DIR_BENIGN%" (
+    mkdir "%OUT_DIR_BENIGN%"
 )
 
-echo === Processing MALWARE APKs ===
-for /R samples\malware %%F in (*.apk) do (
-    echo Processing: %%~nxF
-    java -Xmx1G -cp "%CP%" %MAIN_CLASS% ^
-         "%RT_JAR%" "%ANDROID_JAR_DIR%" "%%~fF" "out\malware"
+for %%f in (%APK_DIR_BENIGN%\*.apk) do (
+    echo 🔵 Processing benign: %%~nxf
+    java -Xms512m -Xmx2048m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar "%%f" "%OUT_DIR_BENIGN%"
+    echo ./out/benign/%%~nxf.csv >> list_of_csv_files.txt
 )
 
-echo === All done! ===
+set APK_DIR_ADWARE=samples\malware\adware
+set OUT_DIR_ADWARE=out\malware\adware
+
+if not exist "%OUT_DIR_ADWARE%" (
+    mkdir "%OUT_DIR_ADWARE%"
+)
+
+for %%f in (%APK_DIR_ADWARE%\*.apk) do (
+    echo 🔴 Processing malware/adware: %%~nxf
+    java -Xms512m -Xmx2048m -cp .;DroidASAT.jar;lib\rt.jar;lib\sootclasses-trunk-jar-with-dependencies.jar;lib\soot-infoflow.jar;lib\soot-infoflow-android.jar DroidASAT.main lib\rt.jar lib\android-jar "%%f" "%OUT_DIR_ADWARE%"
+    echo ./out/malware/adware/%%~nxf.csv >> list_of_csv_files.txt
+)
+
+echo ----------------------------
+echo ✅ Finished processing benign and adware APKs
 pause
 endlocal
